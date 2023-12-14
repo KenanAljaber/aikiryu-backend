@@ -19,5 +19,9 @@ app.post("/contact", async (req, res) => {
     console.log(req.body);
     const contact = req.body;
     const result = await repository.create(contact);
-    res.send(result || null);
+    if(result){
+        res.status(200).send(result);
+    }else{
+        res.status(400).send();
+    }
 });

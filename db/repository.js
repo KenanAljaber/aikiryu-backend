@@ -12,24 +12,26 @@ async function findByEmail(email) {
                 throw new Error("Email is required");
         }
 
-        const result = await db.query(`SELECT * FROM contact WHERE email = '${email}'`);
+        const result = await db.query(`SELECT * FROM contact WHERE email = '${email.trim().toLowerCase()}'`);
         return result.rows[0];
 
 }
 
 async function create(contact) {
-        const { firstName, lastName, email, phone, message } = contact;
-        if (!contact || !firstName || !lastName || !email || !phone || !message) {
-                console.log("[!] All fields are required");
-                throw new Error("All fields are required");
-        }
+        let { firstName, lastName, email, phone, message } = contact;
         try {
-
+                if (!contact || !firstName || !lastName || !email || !phone || !message) {
+                        console.log("[!] All fields are required");
+                        throw new Error("All fields are required");
+                }
+                firstName=firstName.toLowerCase();
+                lastName=lastName.toLowerCase();
+                email=email.toLowerCase();
                 const existingContact = await findByEmail(email);
                 let id = existingContact?.id || uuidv4();
                 if (!existingContact) {
                         console.log(`[+] contact does not exists`);
-                        const contactResult = await db.query("INSERT INTO contact (id, first_name, last_name, email, phone) VALUES ($1, $2, $3, $4, $5)", [id, firstName, lastName, email, phone]);
+                        await db.query("INSERT INTO contact (id, first_name, last_name, email, phone) VALUES ($1, $2, $3, $4, $5)", [id, firstName, lastName, email, phone]);
                 }
                 const requestId = uuidv4();
                 const obj={
@@ -45,7 +47,7 @@ async function create(contact) {
                 if (requestResult) {
                         console.log(`[+] Request created successfully`);
                 }
-                return;
+                return true;
         } catch (error) {
                 console.log(`[!] Could not create contact:`, error);
         }
