@@ -8,12 +8,17 @@ const repository = require('./db/repository');
 const app = express();
 app.use(express.json());
 app.use(cors());
+app.options('*', cors());
 
-
-app.listen(process.env.PORT || 3001, async () => {
-    console.log(`Server listening on port ${process.env.PORT || 3001}`);
-    await db.connect();
+app.listen(process.env.APP_PORT, () => {
+    console.log(`Server listening on port ${process.env.APP_PORT || 3001}`);
+     db.connect();
 });
+
+app.get("/", async (req, res) => {
+    console.log("Hello");
+    res.status(200).send("Hello");
+})
 
 app.post("/contact", async (req, res) => {
     console.log(req.body);
