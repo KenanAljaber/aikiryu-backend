@@ -1,4 +1,5 @@
 const { Client } = require('pg');
+const { TABLES_QUERIES } = require('./tables');
 
 const client = new Client({
     user: process.env.DB_USERNAME,
@@ -8,24 +9,7 @@ const client = new Client({
     port: process.env.DB_PORT,
 });
 
-const CREATE_TABLE_QUERY = `
-CREATE TABLE IF NOT EXISTS contact (
-    id UUID PRIMARY KEY,
-    first_name varchar(80) NOT NULL,
-    last_name varchar(80) NOT NULL,
-    email varchar(100) NOT NULL UNIQUE,
-    phone varchar(15) NOT NULL
-);
-
-CREATE TABLE IF NOT EXISTS request(
-    id UUID PRIMARY KEY,
-    message TEXT NOT NULL,
-    contact_id UUID NOT NULL,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (contact_id) REFERENCES contact(id)
-);
-
-`;
+const CREATE_TABLE_QUERY = TABLES_QUERIES.CONTACT + TABLES_QUERIES.REQUEST + TABLES_QUERIES.ADMIN + TABLES_QUERIES.EVENT;
 
 module.exports = {
     connect: async () => {
