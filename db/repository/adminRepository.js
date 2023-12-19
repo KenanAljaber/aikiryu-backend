@@ -1,5 +1,5 @@
 const bcrypt=require('bcryptjs')
-
+const jwt=require('jsonwebtoken');
 module.exports = {
     findByUsername,
     findByEmail,
@@ -89,6 +89,8 @@ async function login(admin) {
             console.log("[!] Password is incorrect");
             throw new Error("Password is incorrect");
         }
+        const token= await jwt.sign({ user }, process.env.SECRET_KEY, { expiresIn: '1h' });
+        user.token = token;
         return user;
     } catch (error) {
         console.log(`[!] Could not login admin:`, error);
