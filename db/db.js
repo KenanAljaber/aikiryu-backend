@@ -1,5 +1,6 @@
 const { Client } = require('pg');
-const { TABLES_QUERIES } = require('./tables');
+const TABLES_QUERIES = require('./tables');
+
 
 const client = new Client({
     user: process.env.DB_USERNAME,
@@ -19,7 +20,7 @@ module.exports = {
             const result = await client.query(CREATE_TABLE_QUERY);
 
             if (result) {
-                console.log('[+] Table created successfully');
+                console.log('[+] Tables created successfully');
             }
 
         } catch (error) {

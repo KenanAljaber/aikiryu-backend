@@ -3,7 +3,7 @@ const cors = require('cors');
 require('dotenv').config();
 const db = require('./db/db');
 const { v4: uuidv4 } = require('uuid');
-const repository = require('./db/repository');
+const contactRequestRepository = require('./db/repository/contactRequestRepository');
 
 const app = express();
 app.use(express.json());
@@ -23,7 +23,7 @@ app.get("/", async (req, res) => {
 app.post("/contact", async (req, res) => {
     console.log(req.body);
     const contact = req.body;
-    const result = await repository.create(contact);
+    const result = await contactRequestRepository.create(contact);
     if(result){
         res.status(200).send(result);
     }else{
