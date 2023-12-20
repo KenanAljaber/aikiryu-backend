@@ -1,6 +1,6 @@
 const jwt=require('jsonwebtoken');
 
-export async function authMiddleware(req, res, next) {
+const auth=async  (req, res, next)=> {
     try {
         const token= req.header('Authoriztion') || req.cookies.token || req.query.token;
         if(!token){
@@ -18,3 +18,5 @@ export async function authMiddleware(req, res, next) {
         return res.redirect('/login');
     }
 }
+
+module.exports = auth;

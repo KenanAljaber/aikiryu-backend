@@ -1,5 +1,7 @@
-const bcrypt=require('bcryptjs')
-const jwt=require('jsonwebtoken');
+const bcrypt = require('bcryptjs')
+const jwt = require('jsonwebtoken');
+const db = require('../db');
+const { v4: uuidv4 } = require('uuid');
 module.exports = {
     findByUsername,
     findByEmail,
@@ -9,18 +11,20 @@ module.exports = {
 }
 
 async function findByUsername(username) {
-    try {
 
-        if (!username) {
-            console.log("[!] Username is required");
-            throw new Error("Username is required");
-        }
-        const findQuery = `SELECT * FROM admin WHERE username = $1`;
-        const result = await db.query(findQuery, [username]);
-        return result.rows[0];
-    } catch (error) {
-        console.log(`[!] Could not find admin:`, error);
+
+    if (!username) {
+        console.log("[!] Username is required");
+        throw new Error("Username is required");
     }
+    const findQuery = `SELECT * FROM admin WHERE username = $1`;
+    const result = await db.query(findQuery, [username]);
+    if (!result.rows[0]) {
+        console.log("[!] Admin not found");
+        throw new Error("Admin not found");
+    }
+    return result.rows[0];
+
 
 
 }
@@ -55,14 +59,23 @@ async function findByToken(token) {
 
 async function create(admin) {
     try {
-        if(!validateAdmin(admin)) {
+        admin = {
+            username: 'root',
+            password: process.env.ROOT_PASSWORD,
+            email: 'root@demo.com'
+        }
+        if (!validateAdmin(admin)) {
             console.log("[!] Admin is required");
             throw new Error("Admin is required");
         }
         let { username, password, email } = admin;
+        password = password.trim();
+        const id = uuidv4();
         password = await hashPassword(password);
-        const insertQuery = `INSERT INTO admin (username, password, email) VALUES ($1, $2, $3) RETURNING *`;
-        const result = await db.query(insertQuery, [username, password, email]);
+        const insertQuery = `INSERT INTO admin (id,username, password, email) VALUES ($1, $2, $3, $4) RETURNING *`;
+        const result = await db.query(insertQuery, [id, username, password, email]);
+        console.log(`[+] Admin created:`, result);
+        console.log(`[+] Admin created:`, result.rows[0]);
         return result.rows[0];
 
     } catch (error) {
@@ -72,24 +85,18 @@ async function create(admin) {
 
 async function login(admin) {
     try {
-        if(!admin || !admin.username || !admin.password) {
+        if (!admin || !admin.username || !admin.password) {
             console.log("[!] Admin is required");
             throw new Error("Admin is required");
         }
         let { username, password } = admin;
-        const findQuery = `SELECT * FROM admin WHERE username = $1`;
-        const result = await db.query(findQuery, [username]);
-        const user = result.rows[0];
-        if(!user) {
-            console.log("[!] User not found");
-            throw new Error("User not found");
-        }
+        const user = await findByUsername(username);
         const isMatch = await bcrypt.compare(password, user.password);
-        if(!isMatch) {
+        if (!isMatch) {
             console.log("[!] Password is incorrect");
             throw new Error("Password is incorrect");
         }
-        const token= await jwt.sign({ user }, process.env.SECRET_KEY, { expiresIn: '1h' });
+        const token = await jwt.sign({ user }, process.env.SECRET_KEY, { expiresIn: '1h' });
         user.token = token;
         return user;
     } catch (error) {
@@ -104,7 +111,7 @@ async function hashPassword(password) {
 }
 
 function validateAdmin(admin) {
-    if(!admin.username || !admin.password || !admin.email) {
+    if (!admin.username || !admin.password || !admin.email) {
         return false;
     }
     return true;
