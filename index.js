@@ -17,6 +17,7 @@ app.listen(process.env.APP_PORT, () => {
      db.connect();
 });
 const adminRoutes= require('./controllers/adminController.js')(express.Router(),auth);
+const eventRouter= require('./controllers/eventController.js')(express.Router(),auth);
 
 app.use('/admin',adminRoutes);
 

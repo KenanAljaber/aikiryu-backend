@@ -2,7 +2,7 @@ const jwt=require('jsonwebtoken');
 
 const auth=async  (req, res, next)=> {
     try {
-        const token= req.header('Authoriztion') || req.cookies.token || req.query.token;
+        const token= req.header('Authoriztion') || req.cookies?.token || req.query?.token;
         if(!token){
             return res.redirect('/login');
         }

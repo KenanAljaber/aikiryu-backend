@@ -30,7 +30,13 @@ const TABLES_QUERIES = {
         CREATE TABLE IF NOT EXISTS event(
             id UUID PRIMARY KEY,
             name varchar(80) NOT NULL,
-            date DATE NOT NULL
+            start_date DATE NOT NULL,
+            end_date DATE,
+            start_time TIME NOT NULL,
+            end_time TIME NOT NULL,
+            location varchar(80) NOT NULL,
+            days text[],
+            state varchar(80) NOT NULL DEFAULT 'active'
         );
     `,
 };
