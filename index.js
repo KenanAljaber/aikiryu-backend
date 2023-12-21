@@ -20,6 +20,7 @@ const adminRoutes= require('./controllers/adminController.js')(express.Router(),
 const eventRouter= require('./controllers/eventController.js')(express.Router(),auth);
 
 app.use('/admin',adminRoutes);
+app.use('/event',eventRouter);
 
 app.get("/", async (req, res) => {
     console.log("Hello");
