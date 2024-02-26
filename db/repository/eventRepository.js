@@ -1,4 +1,5 @@
 const db = require("../db");
+const { createSchedule } = require("./eventScheduleRepository");
 
 module.exports = {
     create,
@@ -14,11 +15,40 @@ async function create(event) {
         console.log("[!] All fields are required");
         throw new Error("All fields are required");
     }
-    const query = `INSERT INTO events (name, start_date, end_date, location, start_time, end_time,days) VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING *`;
-    const values = [event.name, event.start_date, event.end_date || null, event.location, event.start_time, event.end_time, event.days || []];
+    const query = `INSERT INTO events (name, start_date, end_date, location) VALUES ($1, $2, $3, $4) RETURNING *`;
+    const values = [event.name, event.start_date, event.end_date || null, event.location];
     const result = await db.query(query, values);
+    const createdEvent = result.rows[0];
+
+    // Calculate the days between start and end dates
+    const providedDays = data.days;
+    const startDate = new Date(event.start_date);
+    const endDate = new Date(event.end_date);
+    const days = [];
+    for (let currentDate = startDate; currentDate <= endDate; currentDate.setDate(currentDate.getDate() + 1)) {
+        if (!providedDays.includes(currentDate.getDay() + 1)) {
+            const newEvent = createScheduleEventObj(currentDate, event.start_time,
+                event.end_time, currentDate.getDay() + 1,
+                createdEvent.id);
+            await createSchedule(newEvent);
+        }
+    }
+
     return result.rows[0];
 
+}
+
+function createScheduleEventObj(date, startTime, endTime, day, eventId) {
+    return {
+        date,
+        start_time: startTime,
+        end_time: endTime,
+        day: day,
+        is_suspended: false,
+        event_id: eventId
+
+
+    }
 }
 
 
@@ -62,13 +92,13 @@ async function get(eventId) {
 
 
 async function deleteEvent(id) {
-    if(!id){
+    if (!id) {
         console.log(`[!] id is required for deleting event`);
         throw new Error("Id is required");
     }
-    const query="DELETE FROM event WHERE id="+id;
-    const res=await db.query(query);
-    return res!=null ? true : false;
+    const query = "DELETE FROM event WHERE id=" + id;
+    const res = await db.query(query);
+    return res != null ? true : false;
 }
 
 
