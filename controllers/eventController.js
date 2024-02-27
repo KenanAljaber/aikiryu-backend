@@ -9,10 +9,16 @@ module.exports = (router, auth) => {
     });
 
     router.post("/", auth, async (req, res, next) => {
-        const payload = req.body;
-        if (!payload) return res.status(400).send("payload is required");
-        const result = await eventRepository.create(payload);
-        return result != null ? res.status(200).send(result) : res.status(500).send("could not process the request");
+        try {
+            const payload = req.body;
+            if (!payload) return res.status(400).send("payload is required");
+            const result = await eventRepository.create(payload);
+            return result != null ? res.status(200).send(result) : res.status(500).send("could not process the request");
+
+        } catch (error) {
+            console.log(error);
+            return res.status(error.status || 500).send(error);
+        }
     });
 
     router.put("/:id", auth, async (req, res, next) => {

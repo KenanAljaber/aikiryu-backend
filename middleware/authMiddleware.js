@@ -2,10 +2,11 @@ const jwt=require('jsonwebtoken');
 
 const auth=async  (req, res, next)=> {
     try {
-        const token= req.header('Authoriztion') || req.cookies?.token || req.query?.token;
+        let token= req.header('Authorization') || req.cookies?.token || req.query?.token;
         if(!token){
             return res.redirect('/login');
         }
+        token = token.split(' ')[1];
         const decoded =await jwt.verify(token,process.env.SECRET_KEY)
         console.log(`[+] decoded is `,decoded);
         console.log(`[+] user is `,decoded.user);
