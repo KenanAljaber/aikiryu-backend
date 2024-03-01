@@ -1,5 +1,6 @@
 const db = require("../db");
 const { createSchedule } = require("./eventScheduleRepository");
+const { v4: uuidv4 } = require('uuid');
 
 module.exports = {
     create,
@@ -10,33 +11,38 @@ module.exports = {
 }
 
 
-async function create(event) {
-    if (!validateEvent(event)) {
+async function create(data) {
+    console.log(`[+] Creating event:`, data)
+    if (!validateEvent(data)) {
         console.log("[!] All fields are required");
         throw new Error("All fields are required");
     }
-    const query = `INSERT INTO events (name, start_date, end_date, location) VALUES ($1, $2, $3, $4) RETURNING *`;
-    const values = [event.name, event.start_date, event.end_date || null, event.location];
+    const id = uuidv4();
+    data.location = data.location || "Le havre, France";
+    const query = `INSERT INTO event (id,name, start_date, end_date, location) VALUES ($1, $2, $3, $4, $5) RETURNING *`;
+    const values = [id,data.name, data.start_date, data.end_date || null, data.location];
     const result = await db.query(query, values);
     const createdEvent = result.rows[0];
+    console.log(`[+] Created event:`, createdEvent);
 
     // Calculate the days between start and end dates
     const providedDays = data.days;
-    const startDate = new Date(event.start_date);
-    const endDate = new Date(event.end_date);
-    const days = [];
+    const startDate = new Date(data.start_date);
+    const endDate = new Date(data.end_date);
+    
     for (let currentDate = startDate; currentDate <= endDate; currentDate.setDate(currentDate.getDate() + 1)) {
         if (!providedDays.includes(currentDate.getDay() + 1)) {
-            const newEvent = createScheduleEventObj(currentDate, event.start_time,
-                event.end_time, currentDate.getDay() + 1,
+            const newEvent = createScheduleEventObj(currentDate, data.start_time,
+                data.end_time, currentDate.getDay() + 1,
                 createdEvent.id);
             await createSchedule(newEvent);
         }
     }
 
     return result.rows[0];
-
 }
+
+
 
 function createScheduleEventObj(date, startTime, endTime, day, eventId) {
     return {
@@ -79,7 +85,10 @@ async function update(eventId, data) {
 }
 
 
-async function getAll() {
+async function getAll({limit=10, offset=0}) {
+    const query = "SELECT * FROM event LIMIT $1 OFFSET $2";
+    const result = await db.query(query, [limit || 10, offset || 0]);
+    return result.rows;
 
 }
 
@@ -104,7 +113,7 @@ async function deleteEvent(id) {
 
 function validateEvent(event) {
     if (!event.name || !event.start_date
-        || !event.location || !event.start_time || !event.end_time) {
+         || !event.start_time || !event.end_time) {
         return false
     }
     return true

@@ -7,6 +7,12 @@ module.exports = (router, auth) => {
         const result = await eventRepository.get(id);
         return result != null ? res.status(200).send(result) : res.status(500).send("could not process the request");
     });
+    router.get("/", async (req, res) => {
+        const query=req.query;
+
+        const result = await eventRepository.getAll(query);
+        return result != null ? res.status(200).send(result) : res.status(500).send("could not process the request");
+    });
 
     router.post("/", auth, async (req, res, next) => {
         try {
