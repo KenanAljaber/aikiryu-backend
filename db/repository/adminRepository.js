@@ -21,7 +21,8 @@ async function findByUsername(username) {
     const result = await db.query(findQuery, [username]);
     if (!result.rows[0]) {
         console.log("[!] Admin not found");
-        throw new Error("Admin not found");
+        // throw new Error("Admin not found");
+        return null;
     }
     return result.rows[0];
 
@@ -68,6 +69,11 @@ async function create(admin) {
             console.log("[!] Admin is required");
             throw new Error("Admin is required");
         }
+        const existingAdmin = await findByUsername(admin.username);
+        if (existingAdmin) {
+            console.log("[!] Admin already exists");
+            return;
+        }
         let { username, password, email } = admin;
         password = password.trim();
         const id = uuidv4();
@@ -91,6 +97,10 @@ async function login(admin) {
         }
         let { username, password } = admin;
         const user = await findByUsername(username);
+        if(!user) {
+            console.log("[!] User not found");
+            throw new Error("User not found");
+        }
         const isMatch = await bcrypt.compare(password, user.password);
         if (!isMatch) {
             console.log("[!] Password is incorrect");

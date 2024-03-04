@@ -1,16 +1,24 @@
 const eventRepository = require("../db/repository/eventRepository");
+const eventScheduleRepository = require("../db/repository/eventScheduleRepository");
 module.exports = (router, auth) => {
+    router.get("/test/test", async (req, res) => {
+        try {
+
+            const query = req.query;
+            if (!query || !query.month || !query.year) return res.status(400).send("query is required");
+            console.log(`[+] query is `, query);
+            const result = await eventScheduleRepository.getByMonthAndYear(query.day,query.month, query.year);
+            return result != null ? res.status(200).send(result) : res.status(500).send("could not process the request");
+        } catch (error) {
+            console.log(error);
+            return res.status(error.status || 500).send(error);
+        }
+    });
     router.get("/:id", async (req, res) => {
         const id = req.params.id;
         if (!id) return res.status(400).send("Id is required");
 
         const result = await eventRepository.get(id);
-        return result != null ? res.status(200).send(result) : res.status(500).send("could not process the request");
-    });
-    router.get("/", async (req, res) => {
-        const query=req.query;
-
-        const result = await eventRepository.getAll(query);
         return result != null ? res.status(200).send(result) : res.status(500).send("could not process the request");
     });
 

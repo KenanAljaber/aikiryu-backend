@@ -1,8 +1,11 @@
 const db = require("../db");
 const { v4: uuidv4 } = require('uuid');
+const moment = require('moment');
 
 module.exports = {
-    createSchedule: create
+    createSchedule: create,
+    getByEventId: getByEventId,
+    getByMonthAndYear: getByWeek
 }
 
 async function create(eventSchedule) {
@@ -21,6 +24,20 @@ async function create(eventSchedule) {
 async function getByEventId(eventId) {
     const query = `SELECT * FROM event_schedule WHERE event_id = $1`;
     const result = await db.query(query, [eventId]);
+    return result.rows;
+}
+
+async function getByWeek(day,month,currentYear) {
+    const fromDate=new Date(currentYear,month,day);
+    //add 7 days
+    const toDate= moment(fromDate).add(7,'days').toDate();
+    const query = `SELECT event.id, event.name, event.location, es.date, es.start_time, es.end_time, es.day, es.is_suspended
+    FROM event_schedule AS es
+    INNER JOIN event ON es.event_id = event.id
+    WHERE es.date BETWEEN $1 AND $2
+    `;
+
+    const result = await db.query(query, [fromDate, toDate]);
     return result.rows;
 }
 
