@@ -16,7 +16,7 @@ services:
   app:
     depends_on:
       - postgresdb
-    image: kenanaljaber/aikiryu-back:0.0.1
+    image: kenanaljaber/aikiryu-back:latest
     restart: unless-stopped
     env_file: ./.env
     ports:

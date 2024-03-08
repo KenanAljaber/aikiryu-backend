@@ -1,0 +1,45 @@
+# specify the name of the workflow using name
+name: Deploy with Docker
+
+# specify on what branch to run the workflow using on
+on: 
+  push:
+    branches:
+      - master
+      - development
+
+# specify which jobs to run using jobs
+# specify the job name directly and then the type of server using runs-on and then the steps 
+# each step should have a name and uses a shell command to run
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v2
+
+      - name: Install Dependencies
+        run: npm install
+
+      - name: Docker Login
+        run: echo ${{secrets.DOCKER_PASSWORD}} | docker login -u ${{secrets.DOCKER_USERNAME}} --password-stdin
+
+      - name: Build Docker Image
+        run: |
+          docker build -t kenanaljaber/aikiryu-back:latest .
+          docker push kenanaljaber/aikiryu-back:latest
+      
+      - name: SSH into server and Run Docker 
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.SERVER_HOST }}
+          username: ${{ secrets.SERVER_USERNAME }}
+          key: ${{ secrets.SERVER_SSH_PRIVATE_KEY }}
+          script: |
+            cd dockers/
+            sudo docker compose up -d
+
+
+
+  
