@@ -31,9 +31,9 @@ async function create(data) {
     const endDate = new Date(data.end_date);
     
     for (let currentDate = startDate; currentDate <= endDate; currentDate.setDate(currentDate.getDate() + 1)) {
-        if (!providedDays.includes(currentDate.getDay() + 1)) {
+        if (providedDays.includes(currentDate.getDay() )) {
             const newEvent = createScheduleEventObj(currentDate, data.start_time,
-                data.end_time, currentDate.getDay() + 1,
+                data.end_time, currentDate.getDay() ,
                 createdEvent.id);
             await createSchedule(newEvent);
         }
