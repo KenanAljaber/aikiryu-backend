@@ -29,9 +29,10 @@ async function getByEventId(eventId) {
 }
 
 async function getByWeek(day, month, currentYear) {
-    const fromDate = new Date(currentYear, month, day);
+    const formattedDate = new Date(currentYear, month, day);
     //add 7 days
-    const toDate = moment(fromDate).add(7, 'days').toDate();
+    const fromDate= moment(formattedDate).subtract(7, 'days').toDate();
+    const toDate = moment(formattedDate).add(7, 'days').toDate();
     const query = `SELECT es.id, event.name, event.location, es.date, es.start_time, es.end_time, es.day, es.is_suspended, event.id as event_id
     FROM event_schedule AS es
     INNER JOIN event ON es.event_id = event.id
