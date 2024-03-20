@@ -10,7 +10,7 @@ const auth = async (req, res, next) => {
         }
         let token = req.header('Authorization') || req.cookies?.token || req.query?.token;
         if (!token) {
-            return res.redirect('/login');
+            return res.status(302).send();
         }
         token = token.split(' ')[1];
         const decoded = await jwt.verify(token, process.env.SECRET_KEY)
