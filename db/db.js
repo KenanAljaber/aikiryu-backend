@@ -14,17 +14,31 @@ const CREATE_TABLE_QUERY = TABLES_QUERIES.CONTACT + TABLES_QUERIES.REQUEST + TAB
 
 module.exports = {
     connect: async () => {
-        try {
-            await client.connect();
-            console.log('[+] Connected to PostgreSQL');
-            const result = await client.query(CREATE_TABLE_QUERY);
+        let connected = false;
+        let retries = 5;
+        while (!connected && retries > 0) {
 
-            if (result) {
-                console.log('[+] Tables created successfully');
+            try {
+                await client.connect();
+                console.log('[+] Connected to PostgreSQL');
+                const result = await client.query(CREATE_TABLE_QUERY);
+
+                connected = true;
+
+                if (result) {
+                    console.log('[+] Tables created successfully');
+                }
+
+            } catch (error) {
+                retries--;
+                console.log(`[!] Could not connect to PostgreSQL:`, error);
+                console.log(`[!] Retries left: ${retries}`);
+                if (retries === 0) {
+                    console.log('[!] Max retries reached, exiting...');
+                    process.exit(1);
+                }
+                await new Promise(resolve => setTimeout(resolve, 4000));
             }
-
-        } catch (error) {
-            console.log(`[!] Could not connect to PostgreSQL:`, error);
         }
     },
     query: async (query, values) => {
